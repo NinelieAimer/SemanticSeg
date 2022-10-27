@@ -1,9 +1,17 @@
+from re import X
+from tokenize import Double
+from turtle import forward
+from typing_extensions import Self
+from numpy import diff
+from pandas import concat
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
+import torchvision
 
 class DoubleCovn(nn.Module):
     
-    #这里多了一个mid_channel,其实就是第一层卷积到底要多少层，一般都是和输出层一样的，当不是none时候就让他等于输出层通道数
+    #这里多了一个mid_channel,如果为None，模型就会把他设置为和输出通道数一样
     def __init__(self,in_channels:int,out_channels:int,mid_channels=None):
         super().__init__()
         if not mid_channels:
@@ -13,7 +21,7 @@ class DoubleCovn(nn.Module):
         # 而且我们这里用了padding，方便计算
         # 每一个后面都要记得打逗号
         self.double_conv=nn.Sequential(
-            nn.Conv2d(in_channels,mid_channels,padding=1,bias=False),
+            nn.Conv2d(in_channels,mid_channels,kernel_size=3,padding=1,bias=False),
             nn.BatchNorm2d(mid_channels),
             nn.ReLU(inplace=True), #这里一定要用inplace=True
             
@@ -41,6 +49,50 @@ class Down(nn.Module):
         return self.maxpool_conv(x)
 
 
+
+
+
+class Up(nn.Module):
+    """Upscaling then double conv"""
+    def __init__(self,in_channels,out_channels) -> None:
+        super().__init__() 
+        
+        self.up=nn.ConvTranspose2d(in_channels,out_channels,2,2)
+    
+    def forward(self,x):
+        return self.up(x)
+
+class CropAndConcat(nn.Module):
+    def __init__(self) -> None:
+        super().__init__()
+           
+           
+    def forward(self,x,contracting_x):
+        
+        contracting_x = torchvision.transforms.functional.center_crop(contracting_x, [x.shape[2], x.shape[3]])
+        return torch.cat([x,contracting_x],dim=1)
+    
+class UpAndConcat(nn.Module):
+    def __init__(self,in_channels,out_channels) -> None:
+        super().__init__()
+        self.up_conv=Up(in_channels,out_channels)
+        self.conat=CropAndConcat()
+        self.in_channels=in_channels
+        self.out_channels=out_channels
+    
+    def forward(self,x,contracting_x):
+        x=self.up_conv(x)
+        x=self.conat(x,contracting_x)
+        x=DoubleCovn(x.shape[1],self.out_channels)(x)
+        return x
+
+class FinalConv(nn.Module):
+    def __init__(self,in_channels,out_channels) -> None:
+        super().__init__()
+        self.conv=nn.Conv2d(in_channels,out_channels,kernel_size=1)
+    
+    def forward(self,x):
+        return self.conv(x)
 
 
         
