@@ -1,5 +1,3 @@
-from glob import glob
-from sched import scheduler
 import torch
 import  torch.nn as nn
 import torch.nn.functional as F
@@ -8,7 +6,7 @@ from torch import optim
 import os
 
 
-from utils.DataProceess import MyDataSet
+from .utils.DataProceess import MyDataSet
 from model import UNetModel
 
 img_file=os.path.abspath("../../Data/membrane/train/image/")

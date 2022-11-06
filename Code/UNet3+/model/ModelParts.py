@@ -50,16 +50,16 @@ class ProcessEn(nn.Module):
     def __init__(self,in_channels:int,cat_channels:int,scale:int) -> None:
         super().__init__()
         
-        self.pooling=nn.MaxPool2d(scale,ceil_mode=True)
+        self.pooling=nn.MaxPool2d(scale)
         self.conv=nn.Conv2d(in_channels,cat_channels,3,1)
         self.bn=nn.BatchNorm2d(cat_channels)
         self.act=nn.ReLU(inplace=True)
     
     def forward(self,x):
-        x=self.pooling(x)
         x=self.conv(x)
         x=self.bn(x)
         x=self.act(x)
+        x=self.pooling(x)
         return x
 
 class UpDe(nn.Module):

@@ -85,12 +85,12 @@ class UNet3Plus(nn.Module):
             nn.Sigmoid()
         )
         
-        #initialise weights
-        for m in self.modules():
-            if isinstance(m,nn.Conv2d):
-                m.apply(init_weights)
-            elif isinstance(m,nn.BatchNorm2d):
-                m.apply(init_weights)
+        # #initialise weights
+        # for m in self.modules():
+        #     if isinstance(m,nn.Conv2d):
+        #         m.apply(init_weights)
+        #     elif isinstance(m,nn.BatchNorm2d):
+        #         m.apply(init_weights)
 
         
 
@@ -156,7 +156,7 @@ class UNet3Plus(nn.Module):
         out4=out4*cls_branch_max
         out5=out5*cls_branch_max
         
-        return F.sigmoid(out1),F.sigmoid(out2),F.sigmoid(out3),F.sigmoid(out4),F.sigmoid(out5)
+        return F.sigmoid(out1).float(),F.sigmoid(out2).float,F.sigmoid(out3),F.sigmoid(out4),F.sigmoid(out5)
         
         
         
